@@ -29,7 +29,7 @@ jobs:
           raw = resp.read().decode().strip()
 
           decoded = base64.b64decode(raw).decode()
-          decoded = decoded.replace('allowInsecure=1', f'pinnedPeerCertSha256={fp}')
+          decoded = decoded.replace('allowInsecure=1', f'pcs={fp}')
           modified = base64.b64encode(decoded.encode()).decode()
 
           with open('sub.txt', 'w') as f:
