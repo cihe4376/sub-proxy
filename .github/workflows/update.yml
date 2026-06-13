@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: 拉取并注入证书指纹
         run: |
@@ -36,17 +34,18 @@ jobs:
               f.write(modified)
 
           print(f'节点数: {len(decoded.strip().split(chr(10)))}')
-          print(f'含 pinnedPeerCertSha256: {decoded.count(\"pinnedPeerCertSha256\")}')
+          print(f'pcs 注入数: {decoded.count(\"pcs=\")}')
           "
 
-      - name: 提交更新
+      - name: 提交到 output 分支 (仅保留最新版本)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 切到孤儿分支 output，没有历史记录
+          git checkout --orphan output
           git add sub.txt
-          if git diff --staged --quiet; then
-            echo "无变化，跳过提交"
-          else
-            git commit -m "更新订阅 $(TZ=Asia/Shanghai date +%Y-%m-%d_%H:%M)"
-            git push
-          fi
+          git commit -m "订阅快照 $(TZ=Asia/Shanghai date +%Y-%m-%d_%H:%M)"
+
+          # 强制推送，output 分支永远只有 1 个 commit
+          git push origin output --force
